@@ -1,18 +1,92 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 	<head>
 		<meta name="viewport" charset="UTF-8" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=3">
 		<title>Bir İşlem</title>
 		<style>
+			:root { --bg:#0b1220; --card:#0f172a; --muted:#94a3b8; --border:#1f2a44; --accent:#22c55e; --accent-2:#60a5fa; --danger:#f97316; --text:#e5e7eb; }
 			.target {
 			text-align: center;
 			margin: auto;
-			font-weight: bold;
-			font-size: 3ev;
+			font-weight: 800;
+			font-size: 3em;
 			}
 			.table {
 				display: table;
 			}
+			/* Minimal modern styles */
+			body { background: var(--bg); color: var(--text); font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
+			.gameArea { max-width: 860px; margin: 24px auto; padding: 16px; }
+			.question { display:flex; align-items:center; gap:12px; justify-content:center; color: var(--muted); margin-bottom: 6px; }
+			#target { display:inline-block; padding:6px 12px; border-radius:10px; background: #0b233a; color:#a5f3fc; border:1px solid var(--border); min-width: 64px; text-align:center; box-shadow: 0 0 0 1px rgba(34,197,94,.25), 0 0 12px rgba(56,189,248,.35), 0 0 24px rgba(59,130,246,.25); text-shadow: 0 0 6px rgba(59,130,246,.6); }
+            #target.pulse { animation: neonPulse 3.2s ease-in-out infinite; }
+            @keyframes neonPulse {
+                0%, 100% { box-shadow: 0 0 0 1px rgba(34,197,94,.25), 0 0 10px rgba(56,189,248,.30), 0 0 20px rgba(59,130,246,.20); }
+                50% { box-shadow: 0 0 0 1px rgba(34,197,94,.35), 0 0 16px rgba(56,189,248,.55), 0 0 32px rgba(59,130,246,.35); }
+            }
+            /* Difficulty variants */
+            #target.difficulty-easy { color:#86efac; box-shadow: 0 0 0 1px rgba(34,197,94,.35), 0 0 14px rgba(34,197,94,.45), 0 0 26px rgba(34,197,94,.35); text-shadow: 0 0 6px rgba(34,197,94,.65); }
+            #target.difficulty-medium { color:#fde68a; box-shadow: 0 0 0 1px rgba(251,191,36,.35), 0 0 14px rgba(251,191,36,.45), 0 0 26px rgba(251,146,60,.35); text-shadow: 0 0 6px rgba(251,191,36,.65); }
+            #target.difficulty-hard { color:#fca5a5; box-shadow: 0 0 0 1px rgba(239,68,68,.35), 0 0 14px rgba(239,68,68,.50), 0 0 28px rgba(147,51,234,.40); text-shadow: 0 0 6px rgba(239,68,68,.65); }
+			#timer { padding:4px 10px; border-radius:999px; background:#221b45; color:#c7d2fe; border:1px solid var(--border); }
+			.card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 10px 20px rgba(0,0,0,0.25); }
+			.centered { display: grid; grid-template-columns: repeat(6, minmax(58px, 1fr)); gap: 10px; max-width: 720px; margin: 16px auto; }
+			.operand { padding: 18px; min-height: 64px; text-align: center; background: #0b233a; border-radius: 10px; cursor: pointer; user-select: none; border: 1px solid var(--border); transition: transform .08s ease, background .2s ease, border-color .2s ease, box-shadow .15s ease; display:flex; align-items:center; justify-content:center; font-size: 1.8rem; font-weight: 700; }
+			.operand:hover { transform: translateY(-1px); border-color: var(--accent-2); }
+			.operand:focus-visible { outline: 2px solid transparent; box-shadow: 0 0 0 2px rgba(96,165,250,.9); }
+			.operand:disabled { opacity:.45; cursor:not-allowed; }
+			.selected-operand { background: #0c2f5a; border-color: var(--accent-2); box-shadow: inset 0 0 0 1px rgba(96,165,250,.35); }
+			.operand:active { transform: translateY(0); background:#09213d; }
+			.operation { padding: 12px 16px; margin: 4px; border-radius: 12px; border: 1px solid var(--border); background: #101a2d; color: var(--text); cursor: pointer; transition: transform .06s ease, background .15s ease, border-color .15s ease, box-shadow .15s ease; }
+			.operators .operation { padding: 16px 20px; display:inline-flex; align-items:center; justify-content:center; font-size: 1.6rem; min-width: 64px; min-height: 56px; }
+			.operation:hover { background:#132343; border-color:#2a3b68; transform: translateY(-1px); }
+			.operation:active { transform: translateY(0); background:#0f1a2c; }
+			.operation:focus-visible { outline: 2px solid transparent; box-shadow: 0 0 0 2px rgba(34,197,94,.7); }
+			.operation:disabled { opacity:.5; cursor:not-allowed; }
+			.selected-operation { background: #0f2f22; border-color: #166534; box-shadow: inset 0 0 0 1px rgba(34,197,94,.35); }
+			/* Generic selected highlight (for both operands and operators) */
+			.selected { background-color: #2aa198 !important; color: #fff !important; box-shadow: 0 0 5px #2aa198; }
+			.buttons { display: flex; justify-content: center; gap: 10px; margin: 12px auto; flex-wrap: wrap; }
+			.operators { display: flex; justify-content: center; gap: 10px; margin: 10px auto; }
+			.solution { max-width: 720px; margin: 16px auto; padding: 12px; background: #0e1626; border: 1px solid var(--border); border-radius: 12px; }
+			.panel { max-width: 720px; margin: 12px auto; padding: 10px; background: #0e1626; border: 1px solid var(--border); border-radius: 12px; }
+			.panel h3 { margin: 0 0 8px 0; font-size: 14px; }
+			.footer { text-align:center; color:var(--muted); font-size:12px; margin-top:8px; }
+
+			/* Step cards (timeline-like) */
+			#stepsList { display:block; }
+			.step-card { transition: all 0.25s ease; border-left: 4px solid #268bd2; padding: 0.5em; margin-bottom: 0.5em; background:#0b233a; border-radius: 8px; }
+			@keyframes step-appear {
+              0% { opacity: 0; transform: translateY(6px); }
+              100% { opacity: 1; transform: translateY(0); }
+            }
+            .step-card.appear { animation: step-appear 0.25s ease both; }
+
+			/* Shake animation for invalid operation feedback */
+			@keyframes shake {
+              0% { transform: translateX(0); }
+              25% { transform: translateX(-4px); }
+              50% { transform: translateX(4px); }
+              75% { transform: translateX(-4px); }
+              100% { transform: translateX(0); }
+            }
+            .shake { animation: shake 0.25s ease; }
+
+			/* Responsive grid for small screens */
+			@media (max-width: 680px) {
+				.centered { grid-template-columns: repeat(3, minmax(64px, 1fr)); max-width: 480px; }
+			}
+			@media (max-width: 420px) {
+				.centered { grid-template-columns: repeat(2, minmax(72px, 1fr)); max-width: 340px; }
+			}
+
+			/* Respect reduced motion */
+			@media (prefers-reduced-motion: reduce) {
+                * { transition: none !important; }
+                #target.pulse { animation: none !important; }
+                .shake { animation: none !important; }
+                .step-card.appear { animation: none !important; }
+            }
 		</style>
 	</head>
 	<body>
@@ -26,25 +100,52 @@
 			</div>
 			<div class="question">
 				Hedef :&nbsp;<span id="target">&nbsp;</span>
+				&nbsp;&nbsp;|&nbsp;&nbsp;Süre: <span id="timer">02:00</span>
 			</div>
 			<div id="numbersBlock" class="centered">	
-						<div class="operand" id="number1">0</div>
-						<div class="operand" id="number2">0</div>
-						<div class="operand" id="number3">0</div>
-						<div class="operand" id="number4">0</div>
-						<div class="operand" id="number5">0</div>				
-						<div class="operand" id="number6">0</div>	
+						<div class="operand" id="number1" tabindex="0" role="button">0</div>
+						<div class="operand" id="number2" tabindex="0" role="button">0</div>
+						<div class="operand" id="number3" tabindex="0" role="button">0</div>
+						<div class="operand" id="number4" tabindex="0" role="button">0</div>
+						<div class="operand" id="number5" tabindex="0" role="button">0</div>				
+						<div class="operand" id="number6" tabindex="0" role="button">0</div>	
+			</div>
+			<div class="operators">
+				<button id="addition" class="operation" aria-label="Toplama">+</button>
+				<button id="subtraction" class="operation" aria-label="Çıkarma">-</button>
+				<button id="multiplication" class="operation" aria-label="Çarpma">×</button>
+				<button id="division" class="operation" aria-label="Bölme">÷</button>
 			</div>
 			<div class="buttons">
-				<div id="acceptButton" class="check-button circular bordered">&nbsp;</div>
+				<button id="acceptButton" class="operation" aria-label="Onayla">Onayla</button>
 				<button id="showSolution" class="solution-button circular bordered">Sonuç Göster</button>
-				<div id="undo" class="back-button circular bordered">&nbsp;</div>
-				<div id="new" class="refresh-button circular bordered">&nbsp;</div>
+				<button id="undo" class="operation" aria-label="Geri Al">Geri Al</button>
+				<button id="new" class="operation" aria-label="Yeni Oyun">Yeni Oyun</button>
+				<button id="hintButton" class="operation" aria-label="İpucu">İpucu</button>
 			</div>
-			<div id="solutionArea" class="solution">
+			<div id="stepsArea" class="panel">
+				<h3>Adımlar</h3>
+				<div id="stepsList" aria-live="polite"><em>Henüz adım yok</em></div>
+			</div>
+			<div id="hintArea" class="panel" style="display:none">
+				<h3>İpucu</h3>
+				<div id="hintContent" aria-live="polite"><em>İpucu yok</em></div>
+			</div>
+			<div id="solutionArea" class="solution" role="status" aria-live="polite">
 
 			</div>
+			<div id="scoresPanel" class="panel">
+				<h3>Skorlar</h3>
+				<div style="display:flex; gap:8px; align-items:center; flex-wrap: wrap; margin-bottom:8px;">
+					<label for="playerName" style="font-size:12px; color:var(--muted)">İsim (opsiyonel):</label>
+					<input id="playerName" type="text" placeholder="Oyuncu adı" style="background:#0b233a; color:#e5e7eb; border:1px solid var(--border); border-radius:8px; padding:6px 8px;">
+					<button id="showScores" class="operation" aria-label="Skorları Göster">Skorları Göster</button>
+					<button id="clearScores" class="operation" aria-label="Skorları Temizle">Skorları Temizle</button>
+				</div>
+				<div id="leaderboardArea" aria-live="polite"><em>Henüz skor yok</em></div>
+			</div>
 		</div>
+		<script src="js/solver.js"></script>
 		<script src="js/bir_islem.js"></script>
 	</body>
 </html>

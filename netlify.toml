@@ -1,0 +1,20 @@
+# Netlify configuration for Bir İşlem
+# Static site; no build step
+[build]
+  publish = "."
+  command = ""
+
+# Redirect root to the main HTML if needed
+[[redirects]]
+  from = "/"
+  to = "/birIslem.html"
+  status = 200
+
+# Security headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=()"
